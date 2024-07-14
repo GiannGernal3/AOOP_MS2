@@ -1,0 +1,300 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
+ */
+package paysys;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import javax.swing.JTable;
+import javax.swing.Timer;
+import javax.swing.table.DefaultTableModel;
+import java.sql.PreparedStatement;
+import PaySys_Classes.Employee;
+import javax.swing.JOptionPane;
+
+/**
+ *
+ * @author Giann Gernale
+ */
+public class PaySys_Attendance extends javax.swing.JFrame {
+    
+    DefaultTableModel model = new DefaultTableModel();
+    private Timer refreshTimer;
+
+    /**
+     * Creates new form PaySys_Attendance
+     */
+    public PaySys_Attendance() {
+        initComponents();
+         model.setColumnIdentifiers(new String[] {"Attendance ID","Employee ID", "Date", "Time In Date", "Time Out Date", "Overtime Hours Worked", "Hours Worked"});
+       
+    }
+    public void initializeAttendanceForm(String employeeID) {
+        jLabel3.setText(employeeID);
+        System.out.println("jLabel3 text before parsing: " + jLabel3.getText());
+        try {
+            displayEmployeeAttendance(jTable1, true, -1,-1);
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean displayEmployeeAttendance(JTable jTable1, boolean fullHistory, int month, int year) throws SQLException, ClassNotFoundException {
+        Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/payrollsystem_db", "root", "user123");
+
+        int employeeID = 0;
+
+        System.out.println("jLabel3 text before parsing: " + jLabel3.getText());
+
+        try {
+            employeeID = Integer.parseInt(jLabel3.getText().trim());
+        } catch (NumberFormatException e) {
+            System.err.println("Error parsing employee ID: " + e.getMessage());
+            return false;
+        }
+        int EmployeeID = employeeID - 10000;
+
+        String sql;
+        if (fullHistory) {
+            sql = "SELECT AttendanceID, EmployeeID, Date, TimeInDate, TimeOutDate, OvertimeHours, HoursWorked FROM attendance WHERE EmployeeID = ?";
+        } else {
+            sql = "SELECT AttendanceID, EmployeeID, Date, TimeInDate, TimeOutDate, OvertimeHours, HoursWorked FROM attendance WHERE EmployeeID = ? AND MONTH(Date) = ? AND YEAR(Date) = ?";
+        }
+
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        preparedStatement.setInt(1, EmployeeID);
+
+        if (!fullHistory) {
+            preparedStatement.setInt(2, month);
+            preparedStatement.setInt(3, year);
+        }
+
+        ResultSet resultSet = preparedStatement.executeQuery();
+        model.setRowCount(0);
+
+        boolean dataFound = false;
+        while (resultSet.next()) {
+            dataFound = true;
+            Object[] row = new Object[resultSet.getMetaData().getColumnCount()];
+            for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
+                row[i - 1] = resultSet.getObject(i);
+            }
+            model.addRow(row);
+        }
+
+        jTable1.setModel(model);
+        connection.close();
+
+        return dataFound;
+    }
+
+    private void setResizeTable() {
+        jTable1.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+    }
+    
+    public void filterAttendanceByMonthYear() {
+        String selectedMonth = jComboBox1.getSelectedItem().toString();
+        int month = getMonthNumber(selectedMonth);
+        String yearText = jComboBox2.getSelectedItem().toString(); // Assuming you have a text field for year input
+        int year = Integer.parseInt(yearText);
+
+        try {
+            boolean dataFound = displayEmployeeAttendance(jTable1, false, month, year);
+
+            if (!dataFound) {
+                JOptionPane.showMessageDialog(null, "No attendance data for the selected month and year.", "No Data", JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private int getMonthNumber(String monthName) {
+        switch (monthName) {
+            case "January": return 1;
+            case "February": return 2;
+            case "March": return 3;
+            case "April": return 4;
+            case "May": return 5;
+            case "June": return 6;
+            case "July": return 7;
+            case "August": return 8;
+            case "September": return 9;
+            case "October": return 10;
+            case "November": return 11;
+            case "December": return 12;
+            default: return -1; // Invalid month
+        }
+    }
+    
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jPanel1 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
+        jComboBox1 = new javax.swing.JComboBox<>();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        jComboBox2 = new javax.swing.JComboBox<>();
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        jLabel24 = new javax.swing.JLabel();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setResizable(false);
+
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+        jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(0, 0, 102));
+        jLabel1.setText("Employee Attendance Records");
+        jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 20, 330, 24));
+
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane1.setViewportView(jTable1);
+
+        jPanel1.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 90, 560, 500));
+
+        jComboBox1.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" }));
+        jPanel1.add(jComboBox1, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 50, -1, -1));
+
+        jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        jLabel2.setForeground(new java.awt.Color(0, 0, 102));
+        jLabel2.setText("Employee ID:");
+        jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(630, 50, -1, -1));
+
+        jLabel3.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        jLabel3.setForeground(new java.awt.Color(0, 0, 102));
+        jLabel3.setText("0000");
+        jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(750, 50, -1, -1));
+
+        jComboBox2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "2023", "2024", "2025" }));
+        jPanel1.add(jComboBox2, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 50, -1, -1));
+
+        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        jButton1.setForeground(new java.awt.Color(102, 0, 0));
+        jButton1.setText("Close");
+        jButton1.setMinimumSize(new java.awt.Dimension(72, 22));
+        jButton1.setPreferredSize(new java.awt.Dimension(72, 22));
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+        jPanel1.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(710, 600, 80, 30));
+
+        jButton2.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        jButton2.setForeground(new java.awt.Color(0, 102, 0));
+        jButton2.setText("View");
+        jButton2.setPreferredSize(new java.awt.Dimension(72, 22));
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+        jPanel1.add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(620, 600, 80, 30));
+
+        jLabel24.setText("© 2024 MotorPH Co., All Rights Reserved. ");
+        jPanel1.add(jLabel24, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 590, -1, 50));
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 1000, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 650, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+
+        pack();
+        setLocationRelativeTo(null);
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        dispose();
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        // TODO add your handling code here:
+        filterAttendanceByMonthYear();
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Windows".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(PaySys_Attendance.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(PaySys_Attendance.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(PaySys_Attendance.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(PaySys_Attendance.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new PaySys_Attendance().setVisible(true);
+            }
+        });
+    }
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JComboBox<String> jComboBox1;
+    private javax.swing.JComboBox<String> jComboBox2;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel24;
+    public javax.swing.JLabel jLabel3;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable jTable1;
+    // End of variables declaration//GEN-END:variables
+}
